@@ -29,12 +29,10 @@ export default function GamePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"win" | "lose">("win");
   const [modalMessage, setModalMessage] = useState("");
 
-  // Check auth
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/login");
@@ -47,14 +45,16 @@ export default function GamePage() {
     try {
       const status = await getGameStatus();
       setHasActiveGame(status.has_active_game);
-      setGamesRemaining(status.games_remaining_today ?? 3 - (status.games_played_today ?? 0));
+      setGamesRemaining(
+        status.games_remaining_today ?? 3 - (status.games_played_today ?? 0)
+      );
 
       if (status.has_active_game) {
         setGuesses(status.guesses || []);
         setAttemptsRemaining(status.attempts_remaining);
       }
     } catch {
-      setError("Failed to load game status.");
+      setError("Could not load game status. Try refreshing.");
     } finally {
       setLoading(false);
     }
@@ -78,12 +78,12 @@ export default function GamePage() {
 
   const handleSubmitGuess = useCallback(async () => {
     if (currentGuess.length !== 5) {
-      setError("Please enter a 5-letter word.");
+      setError("Enter a 5-letter word.");
       return;
     }
 
     if (!/^[A-Za-z]+$/.test(currentGuess)) {
-      setError("Only letters are allowed.");
+      setError("Letters only.");
       return;
     }
 
@@ -106,19 +106,18 @@ export default function GamePage() {
       if (result.game_over) {
         setHasActiveGame(false);
 
-        // Small delay so the tiles animate before showing modal
         setTimeout(() => {
           if (result.is_correct) {
             setModalType("win");
-            setModalMessage("You guessed the word correctly! Amazing! 🎉");
+            setModalMessage(
+              `You guessed it in ${result.attempt} ${result.attempt === 1 ? "try" : "tries"}.`
+            );
           } else {
             setModalType("lose");
-            setModalMessage(
-              "You've used all 5 guesses. Don't give up, try again!"
-            );
+            setModalMessage("The word was " + result.word + ". Try again with a new word.");
           }
           setShowModal(true);
-        }, 600);
+        }, 500);
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -134,7 +133,6 @@ export default function GamePage() {
     loadGameStatus();
   };
 
-  // Keyboard handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showModal || !hasActiveGame || submitting) return;
@@ -155,65 +153,87 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <div className="page-container">
+      <div className="page">
         <Navbar />
         <div className="loading" style={{ flex: 1 }}>
-          <div className="spinner"></div>
-          Loading game...
+          <div className="spinner" />
+          Loading…
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-container">
+    <div className="page">
       <Navbar />
 
-      <div className="main-content">
-        <div className="game-container">
-          {/* Game info badges */}
-          <div className="game-info">
-            <span className="game-badge">
-              Games remaining today: <strong>{gamesRemaining}</strong>
-            </span>
-            {hasActiveGame && (
-              <span className="game-badge">
-                Attempts left: <strong>{attemptsRemaining}</strong>
-              </span>
+      <div className="main">
+        <div className="game">
+          {/* Status line */}
+          <p className="game__meta">
+            {hasActiveGame ? (
+              <>
+                Attempt <strong>{guesses.length + 1}</strong> of{" "}
+                <strong>5</strong>
+                {" · "}
+                {gamesRemaining} game{gamesRemaining !== 1 ? "s" : ""} left
+                today
+              </>
+            ) : (
+              <>
+                {gamesRemaining} game{gamesRemaining !== 1 ? "s" : ""} remaining
+                today
+              </>
             )}
-          </div>
+          </p>
 
-          {error && <div className="alert alert-error">{error}</div>}
+          {error && <div className="alert alert--error">{error}</div>}
 
           {!hasActiveGame ? (
-            /* No active game — show start button */
-            <div className="card" style={{ textAlign: "center", marginTop: 20 }}>
-              <div className="card-header">
-                <h2>🎮 Ready to Play?</h2>
-                <p>
-                  Guess the 5-letter word in 5 attempts. Letters are shown in
-                  uppercase.
+            gamesRemaining > 0 ? (
+              <div className="game__start">
+                <h2 className="game__start-title">Ready to play?</h2>
+                <p className="game__start-desc">
+                  Guess a 5-letter word in 5 tries.
                 </p>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                  <span className="game-badge">🟩 Correct position</span>
-                  <span className="game-badge">🟧 Wrong position</span>
-                  <span className="game-badge">⬜ Not in word</span>
+
+                <div className="game__legend">
+                  <span className="game__legend-item">
+                    <span
+                      className="game__legend-swatch"
+                      style={{ background: "var(--correct)" }}
+                    />
+                    Correct
+                  </span>
+                  <span className="game__legend-item">
+                    <span
+                      className="game__legend-swatch"
+                      style={{ background: "var(--present)" }}
+                    />
+                    Wrong spot
+                  </span>
+                  <span className="game__legend-item">
+                    <span
+                      className="game__legend-swatch"
+                      style={{ background: "var(--absent)" }}
+                    />
+                    Not in word
+                  </span>
                 </div>
+
+                <button
+                  className="btn btn--primary"
+                  onClick={handleStartGame}
+                >
+                  Start new game
+                </button>
               </div>
-              <button
-                className="btn btn-primary btn-lg"
-                onClick={handleStartGame}
-                disabled={gamesRemaining <= 0}
-              >
-                {gamesRemaining > 0
-                  ? "Start New Game"
-                  : "Daily Limit Reached"}
-              </button>
-            </div>
+            ) : (
+              <p className="game__limit">
+                You&rsquo;ve played all 3 games for today. Come back tomorrow.
+              </p>
+            )
           ) : (
-            /* Active game — show board and input */
             <>
               <GameBoard
                 guesses={guesses}
@@ -221,10 +241,10 @@ export default function GamePage() {
                 maxAttempts={5}
               />
 
-              <div className="input-section">
+              <div className="guess">
                 <input
                   type="text"
-                  className="guess-input"
+                  className="guess__input"
                   value={currentGuess}
                   onChange={(e) => {
                     const val = e.target.value
@@ -233,17 +253,18 @@ export default function GamePage() {
                       .slice(0, 5);
                     setCurrentGuess(val);
                   }}
-                  placeholder="Type your guess..."
+                  placeholder="Type a word…"
                   maxLength={5}
                   autoFocus
                   disabled={submitting}
+                  aria-label="Your guess"
                 />
                 <button
-                  className="btn btn-primary btn-block"
+                  className="btn btn--primary btn--block"
                   onClick={handleSubmitGuess}
                   disabled={currentGuess.length !== 5 || submitting}
                 >
-                  {submitting ? "Checking..." : "Submit Guess"}
+                  {submitting ? "Checking…" : "Submit"}
                 </button>
               </div>
             </>
@@ -251,7 +272,6 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Win/Loss Modal */}
       <Modal
         isOpen={showModal}
         onClose={handleModalClose}
