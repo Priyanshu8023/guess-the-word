@@ -21,12 +21,10 @@ export default function GameBoard({
 }: GameBoardProps) {
   const rows = [];
 
-  // Render submitted guesses
   for (let i = 0; i < maxAttempts; i++) {
     const tiles = [];
 
     if (i < guesses.length) {
-      // Submitted guess row
       const guess = guesses[i];
       for (let j = 0; j < 5; j++) {
         tiles.push(
@@ -38,7 +36,6 @@ export default function GameBoard({
         );
       }
     } else if (i === guesses.length) {
-      // Current input row
       for (let j = 0; j < 5; j++) {
         tiles.push(
           <Tile
@@ -49,16 +46,13 @@ export default function GameBoard({
         );
       }
     } else {
-      // Empty future rows
       for (let j = 0; j < 5; j++) {
-        tiles.push(
-          <Tile key={`${i}-${j}`} letter="" state="empty" />
-        );
+        tiles.push(<Tile key={`${i}-${j}`} letter="" state="empty" />);
       }
     }
 
     rows.push(
-      <div key={i} className="board-row">
+      <div key={i} className="board__row">
         {tiles}
       </div>
     );

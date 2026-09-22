@@ -11,20 +11,19 @@ export default function Modal({ isOpen, onClose, type, message }: ModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-icon">{type === "win" ? "🎉" : "😔"}</div>
-        <h2>
-          {type === "win" ? "Congratulations!" : "Better Luck Next Time"}
+    <div className="overlay" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal__title">
+          {type === "win" ? "You got it" : "Not this time"}
         </h2>
-        <p>
+        <p className="modal__body">
           {message ||
             (type === "win"
-              ? "You guessed the word correctly! Great job!"
-              : "You've used all 5 guesses. Don't give up, try again!")}
+              ? "You guessed the word correctly."
+              : "You\u2019ve used all 5 guesses. Try again with a new word.")}
         </p>
-        <button className="btn btn-primary" onClick={onClose}>
-          OK
+        <button className="btn btn--primary" onClick={onClose}>
+          {type === "win" ? "Play Again" : "Try Again"}
         </button>
       </div>
     </div>

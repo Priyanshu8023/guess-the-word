@@ -27,26 +27,25 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
-      <Link href="/game" className="navbar-brand">
-        <span className="logo-icon">🔤</span>
-        <h1>Guess The Word</h1>
+    <nav className="nav">
+      <Link href="/game" className="nav__brand">
+        Guess the Word
       </Link>
 
-      <div className="navbar-actions">
+      <div className="nav__actions">
         {user && (
           <>
-            <span className="navbar-user">
+            <span className="nav__user">
               {user.username}
-              <span className="navbar-role">{user.role}</span>
+              <span className="nav__role">{user.role}</span>
             </span>
             {user.role === "ADMIN" && (
-              <Link href="/admin" className="btn btn-secondary btn-sm">
-                📊 Reports
+              <Link href="/admin" className="btn btn--secondary btn--sm">
+                Reports
               </Link>
             )}
-            <button onClick={handleLogout} className="btn btn-danger btn-sm">
-              Logout
+            <button onClick={handleLogout} className="btn btn--danger btn--sm">
+              Log out
             </button>
           </>
         )}
