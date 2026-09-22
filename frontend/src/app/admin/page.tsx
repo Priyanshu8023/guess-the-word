@@ -45,12 +45,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Date selection
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
 
-  // Data
   const [dailyReport, setDailyReport] = useState<DailyReportData | null>(null);
   const [users, setUsers] = useState<UserData[]>([]);
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
@@ -63,7 +61,6 @@ export default function AdminPage() {
       return;
     }
 
-    // Check if user is admin
     getMe().then((user) => {
       if (user.role !== "ADMIN") {
         router.push("/game");
@@ -86,7 +83,7 @@ export default function AdminPage() {
     try {
       await Promise.all([loadDailyReport(), loadUsers()]);
     } catch {
-      setError("Failed to load admin data.");
+      setError("Failed to load report data.");
     } finally {
       setLoading(false);
     }
@@ -97,7 +94,7 @@ export default function AdminPage() {
       const report = await getDailyReport(selectedDate);
       setDailyReport(report);
     } catch {
-      console.error("Failed to load daily report");
+      /* silently fail — date might have no data */
     }
   };
 
@@ -106,7 +103,7 @@ export default function AdminPage() {
       const usersList = await getUsers();
       setUsers(usersList);
     } catch {
-      console.error("Failed to load users");
+      /* silently fail */
     }
   };
 
@@ -117,7 +114,7 @@ export default function AdminPage() {
       setUserReport(report);
       setSelectedUser(userId);
     } catch {
-      console.error("Failed to load user report");
+      /* silently fail */
     } finally {
       setReportLoading(false);
     }
@@ -125,42 +122,35 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="page-container">
+      <div className="page">
         <Navbar />
         <div className="loading" style={{ flex: 1 }}>
-          <div className="spinner"></div>
-          Loading admin dashboard...
+          <div className="spinner" />
+          Loading…
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-container">
+    <div className="page">
       <Navbar />
 
-      <div className="main-content" style={{ maxWidth: 900 }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1
-            style={{
-              fontSize: "1.6rem",
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            📊 Admin Dashboard
-          </h1>
-          <p style={{ color: "var(--text-secondary)", marginTop: 4 }}>
-            View game reports and user statistics
+      <div className="main main--wide">
+        {/* Header + date picker on one line */}
+        <div className="admin__header">
+          <h1 className="admin__title">Reports</h1>
+          <p className="admin__subtitle">
+            Daily game statistics and per-user breakdowns.
           </p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert--error">{error}</div>}
 
-        {/* Date Picker */}
-        <div style={{ marginBottom: 24 }}>
-          <label className="form-label">Select Date</label>
+        <div className="admin__toolbar">
+          <label htmlFor="report-date">Date</label>
           <input
+            id="report-date"
             type="date"
             className="date-input"
             value={selectedDate}
@@ -168,184 +158,147 @@ export default function AdminPage() {
           />
         </div>
 
-        {/* Daily Report Stats */}
+        {/* Daily stats */}
         {dailyReport && (
-          <div className="card" style={{ marginBottom: 24 }}>
-            <div className="card-header">
-              <h2>Daily Report — {dailyReport.date}</h2>
-            </div>
-            <div className="stat-cards">
-              <div className="stat-card">
-                <div className="stat-value">{dailyReport.total_users}</div>
-                <div className="stat-label">Users Played</div>
+          <div className="section">
+            <h2 className="section__title">
+              Overview &mdash; {dailyReport.date}
+            </h2>
+            <div className="stats">
+              <div className="stat">
+                <div className="stat__value">{dailyReport.total_users}</div>
+                <div className="stat__label">Players</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value">{dailyReport.total_games}</div>
-                <div className="stat-label">Total Games</div>
+              <div className="stat">
+                <div className="stat__value">{dailyReport.total_games}</div>
+                <div className="stat__label">Games</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value">
+              <div className="stat">
+                <div className="stat__value">
                   {dailyReport.total_correct_guesses}
                 </div>
-                <div className="stat-label">Correct Guesses</div>
+                <div className="stat__label">Won</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value">{dailyReport.total_incorrect}</div>
-                <div className="stat-label">Incorrect</div>
+              <div className="stat">
+                <div className="stat__value">{dailyReport.total_incorrect}</div>
+                <div className="stat__label">Lost</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Users Table */}
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-header">
-            <h2>Users</h2>
-            <p>Click on a user to view their report</p>
-          </div>
+        {/* Users table */}
+        <div className="section">
+          <h2 className="section__title">Users</h2>
 
-          <div style={{ overflowX: "auto" }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Username</th>
-                  <th>Role</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>{u.username}</td>
-                    <td>
-                      <span
-                        className="navbar-role"
-                        style={{ marginLeft: 0 }}
-                      >
-                        {u.role}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => loadUserReport(u.id)}
-                      >
-                        View Report
-                      </button>
-                    </td>
+          {users.length === 0 ? (
+            <p className="empty">No users registered yet.</p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td style={{ color: "var(--text-3)" }}>{u.id}</td>
+                      <td>{u.username}</td>
+                      <td>
+                        <span className="role-cell">{u.role}</span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn--secondary btn--sm"
+                          onClick={() => loadUserReport(u.id)}
+                        >
+                          View report
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* User Report */}
+        {/* User report detail */}
         {reportLoading && (
           <div className="loading">
-            <div className="spinner"></div>
-            Loading user report...
+            <div className="spinner" />
+            Loading report…
           </div>
         )}
 
         {userReport && !reportLoading && (
-          <div className="card">
-            <div className="card-header">
-              <h2>
-                User Report — {userReport.username} ({userReport.date})
-              </h2>
-            </div>
+          <div className="section">
+            <h2 className="section__title">
+              {userReport.username} &mdash; {userReport.date}
+            </h2>
 
-            <div className="stat-cards" style={{ marginBottom: 20 }}>
-              <div className="stat-card">
-                <div className="stat-value">
+            <div className="stats" style={{ marginBottom: "var(--sp-4)" }}>
+              <div className="stat">
+                <div className="stat__value">
                   {userReport.number_of_words_tried}
                 </div>
-                <div className="stat-label">Words Tried</div>
+                <div className="stat__label">Games</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value">{userReport.correct_guesses}</div>
-                <div className="stat-label">Correct Guesses</div>
+              <div className="stat">
+                <div className="stat__value">{userReport.correct_guesses}</div>
+                <div className="stat__label">Won</div>
               </div>
             </div>
 
-            {/* Games detail */}
-            {userReport.words_tried.map((game, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: "16px",
-                  background: "var(--bg-primary)",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-color)",
-                  marginBottom: 12,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 12,
-                    alignItems: "center",
-                  }}
-                >
-                  <strong>Word: {game.word}</strong>
-                  <span
-                    className="game-badge"
-                    style={{
-                      background:
+            {userReport.words_tried.length === 0 ? (
+              <p className="empty">No games played on this date.</p>
+            ) : (
+              userReport.words_tried.map((game, idx) => (
+                <div key={idx} className="game-entry">
+                  <div className="game-entry__header">
+                    <span className="game-entry__word">{game.word}</span>
+                    <span
+                      className={`game-entry__status ${
                         game.status === "WON"
-                          ? "var(--accent-green-glow)"
-                          : game.status === "LOST"
-                          ? "rgba(248,113,113,0.15)"
-                          : "var(--accent-purple-glow)",
-                      color:
-                        game.status === "WON"
-                          ? "var(--accent-green)"
-                          : game.status === "LOST"
-                          ? "var(--accent-red)"
-                          : "var(--accent-purple)",
-                      borderColor:
-                        game.status === "WON"
-                          ? "rgba(74,222,128,0.3)"
-                          : game.status === "LOST"
-                          ? "rgba(248,113,113,0.3)"
-                          : "rgba(167,139,250,0.3)",
-                    }}
-                  >
-                    {game.status} ({game.attempts}/5 attempts)
-                  </span>
-                </div>
+                          ? "game-entry__status--won"
+                          : "game-entry__status--lost"
+                      }`}
+                    >
+                      {game.status === "WON" ? "Won" : "Lost"} in{" "}
+                      {game.attempts}/5
+                    </span>
+                  </div>
 
-                {/* Show guesses as mini tiles */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {game.guesses.map((guess, gIdx) => (
-                    <div key={gIdx} style={{ display: "flex", gap: 4 }}>
-                      {guess.word.split("").map((letter, lIdx) => (
-                        <div
-                          key={lIdx}
-                          className={`tile ${guess.result[lIdx]}`}
-                          style={{
-                            width: 36,
-                            height: 36,
-                            fontSize: "0.9rem",
-                          }}
-                        >
-                          {letter}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                  <div className="game-entry__grid">
+                    {game.guesses.map((guess, gIdx) => (
+                      <div key={gIdx} className="game-entry__row">
+                        {guess.word.split("").map((letter, lIdx) => {
+                          const colorMap: Record<string, string> = {
+                            green: "mini-tile--correct",
+                            orange: "mini-tile--present",
+                            grey: "mini-tile--absent",
+                          };
+                          return (
+                            <div
+                              key={lIdx}
+                              className={`mini-tile ${
+                                colorMap[guess.result[lIdx]] || ""
+                              }`}
+                            >
+                              {letter}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-
-            {userReport.words_tried.length === 0 && (
-              <p style={{ color: "var(--text-muted)", textAlign: "center", padding: 20 }}>
-                No games played on this date.
-              </p>
+              ))
             )}
           </div>
         )}
