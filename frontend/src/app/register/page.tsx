@@ -49,7 +49,9 @@ export default function RegisterPage() {
     }
 
     if (!/[$%*&]/.test(password)) {
-      setError("Password must contain at least one special character ($, %, *, &).");
+      setError(
+        "Password must contain at least one special character ($, %, *, &)."
+      );
       return;
     }
 
@@ -73,76 +75,83 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card card">
-        <div className="auth-title">
-          <span className="logo-icon">🔤</span>
-          <h1>Create Account</h1>
-          <p>Join and start guessing words</p>
+    <div className="auth">
+      <div className="auth__form">
+        <div className="auth__header">
+          <h1 className="auth__title">Create an account</h1>
+          <p className="auth__subtitle">
+            Register to start playing Guess the Word.
+          </p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert--error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">
+          <div className="field">
+            <label className="field__label" htmlFor="reg-username">
               Username
             </label>
             <input
-              id="username"
+              id="reg-username"
               type="text"
-              className="form-input"
-              placeholder="At least 5 chars, upper & lowercase"
+              className="input"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
             />
+            <p className="field__hint">
+              At least 5 characters. Must include uppercase and lowercase
+              letters.
+            </p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">
+          <div className="field">
+            <label className="field__label" htmlFor="reg-password">
               Password
             </label>
             <input
-              id="password"
+              id="reg-password"
               type="password"
-              className="form-input"
-              placeholder="Letters, numbers & special ($%*&)"
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
+            <p className="field__hint">
+              At least 5 characters. Letters, numbers, and a special character
+              ($, %, *, &).
+            </p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="confirmPassword">
-              Confirm Password
+          <div className="field">
+            <label className="field__label" htmlFor="reg-confirm">
+              Confirm password
             </label>
             <input
-              id="confirmPassword"
+              id="reg-confirm"
               type="password"
-              className="form-input"
-              placeholder="Re-enter your password"
+              className="input"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary btn-block btn-lg"
+            className="btn btn--primary btn--block"
             disabled={loading}
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? "Creating account\u2026" : "Create account"}
           </button>
         </form>
 
-        <div className="form-footer" style={{ marginTop: "20px" }}>
-          <p style={{ color: "var(--text-secondary)" }}>
-            Already have an account? <Link href="/login">Sign in</Link>
-          </p>
-        </div>
+        <p className="auth__footer">
+          Already have an account? <Link href="/login">Sign in</Link>
+        </p>
       </div>
     </div>
   );

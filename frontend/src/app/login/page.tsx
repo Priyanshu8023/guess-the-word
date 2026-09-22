@@ -29,62 +29,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card card">
-        <div className="auth-title">
-          <span className="logo-icon">🔤</span>
-          <h1>Guess The Word</h1>
-          <p>Sign in to start playing</p>
+    <div className="auth">
+      <div className="auth__form">
+        <div className="auth__header">
+          <h1 className="auth__title">Sign in to Guess the Word</h1>
+          <p className="auth__subtitle">
+            Enter your credentials to continue playing.
+          </p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert--error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">
+          <div className="field">
+            <label className="field__label" htmlFor="login-username">
               Username
             </label>
             <input
-              id="username"
+              id="login-username"
               type="text"
-              className="form-input"
-              placeholder="Enter your username"
+              className="input"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">
+          <div className="field">
+            <label className="field__label" htmlFor="login-password">
               Password
             </label>
             <input
-              id="password"
+              id="login-password"
               type="password"
-              className="form-input"
-              placeholder="Enter your password"
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary btn-block btn-lg"
+            className="btn btn--primary btn--block"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in\u2026" : "Sign in"}
           </button>
         </form>
 
-        <div className="form-footer" style={{ marginTop: "20px" }}>
-          <p style={{ color: "var(--text-secondary)" }}>
-            Don&apos;t have an account?{" "}
-            <Link href="/register">Create one</Link>
-          </p>
-        </div>
+        <p className="auth__footer">
+          No account?{" "}
+          <Link href="/register">Create one</Link>
+        </p>
       </div>
     </div>
   );
