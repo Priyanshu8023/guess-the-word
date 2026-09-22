@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      Role     @default(PLAYER)
+  createdAt DateTime @default(now())
+  games     Game[]
+}
+
+enum Role {
+  ADMIN
+  PLAYER
+}
+
+model Word {
+  id    Int    @id @default(autoincrement())
+  text  String @unique @db.VarChar(5)
+  games Game[]
+}
+
+model Game {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  wordId      Int
+  status      GameStatus @default(IN_PROGRESS)
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  user        User       @relation(fields: [userId], references: [id])
+  word        Word       @relation(fields: [wordId], references: [id])
+  guesses     Guess[]
+
+  @@index([userId, startedAt])
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  WON
+  LOST
+}
+
+model Guess {
+  id        Int      @id @default(autoincrement())
+  gameId    Int
+  attempt   Int
+  word      String   @db.VarChar(5)
+  result    String
+  createdAt DateTime @default(now())
+  game      Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([gameId, attempt])
+}
